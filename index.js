@@ -1,11 +1,31 @@
 const chalk = require('chalk')
 const fs = require('fs')
 
-function pegaArquivo(path) {
-  const encode = 'utf-8'
-  fs.readFile(path, encode, (_, texto) => {
-    console.log(chalk.green(texto))
-  })
+function extrairLinks(texto) {
+  const regEx = /\[([^\]]*)\]\((https?:\/\/[^$#\s].[^\s]*)\)/gm
+  const arrayResultados = []
+  let temp;
+
+  while ((temp = regEx.exec(texto)) !== null) {
+    arrayResultados.push({
+      [temp[1]]: temp[2]
+    })
+  }
+  return arrayResultados.length ? arrayResultados : 'This file does not have links'
 }
 
-pegaArquivo('./arquivos/texto1.md')
+function tratarErro(erro) {
+  console.log(chalk.red(erro.code, 'Nao ha arquivo no caminho'))
+}
+
+async function pegaArquivo(caminhoArquivo) {
+  const encoding = 'utf8'
+  try {
+    const texto = await fs.promises.readFile(caminhoArquivo, encoding)
+    return extrairLinks(texto)
+  } catch(e) {
+    tratarErro(e)
+  }
+}
+
+module.exports = pegaArquivo
